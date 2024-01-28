@@ -123,3 +123,89 @@ class TranslateProposer(Proposer):
         e_before = before.get_potential_energy()
         e_after = after.get_potential_energy()
         return min(1, np.exp(-self.beta * (e_after - e_before)))
+
+
+class RotateProposer(Proposer):
+    def __init__(
+        self,
+        temperature: float,
+        phi_range: Iterable[float, float] = (-0.15, 0.15),
+        theta_range: Iterable[float, float] = (-0.15, 0.15),
+        psi_range: Iterable[float, float] = (-0.15, 0.15),
+        center="COM",
+    ) -> None:
+        """
+        temperature: float
+            Temperature of the system in Kelvin
+        phi_range: Iterable[float]
+            Range of the 1st rotation angle around the z-axis. [degree]
+        theta_range: Iterable[float]
+            Range of rotation angle around the x-axis. [degree]
+        psi_range: Iterable[float]
+            Range of rotation around the z-axis. [degree]
+        center: str or np.ndarray
+            Center of rotation. If str, it must be one of "COM" or "COP" or "COU".
+            If np.ndarray, it must be a 3D vector.
+            See https://wiki.fysik.dtu.dk/ase/ase/atoms.html#ase.Atoms.euler_rotate
+        """
+        super().__init__(temperature)
+        self.phi_range = phi_range
+        self.theta_range = theta_range
+        self.psi_range = psi_range
+        self.center = center
+        return
+
+    @property
+    def phi_range(self):
+        return self._phi_range
+
+    @phi_range.setter
+    def phi_range(self, phi_range):
+        if len(phi_range) != 2:
+            raise ValueError("phi_range must be an array of length 2")
+        self._phi_range = phi_range
+
+    @property
+    def theta_range(self):
+        return self._theta_range
+
+    @theta_range.setter
+    def theta_range(self, theta_range):
+        if len(theta_range) != 2:
+            raise ValueError("theta_range must be an array of length 2")
+        self._theta_range = theta_range
+
+    @property
+    def psi_range(self):
+        return self._psi_range
+
+    @psi_range.setter
+    def psi_range(self, psi_range):
+        if len(psi_range) != 2:
+            raise ValueError("psi_range must be an array of length 2")
+        self._psi_range = psi_range
+
+    def propose(self, system: Atoms, tags: Iterable[int]) -> None:
+        candidate = system.copy()
+        for tag in tags:
+            # split system into main and sub systems
+            mask = candidate.get_tags() == tag
+            main_system = candidate[~mask]
+            sub_system = candidate[mask]
+
+            # create a new sub system with euler rotation
+            rotate_angle = [
+                np.random.uniform(*self.phi_range),
+                np.random.uniform(*self.theta_range),
+                np.random.uniform(*self.psi_range),
+            ]
+            sub_system.euler_rotate(*rotate_angle, center=self.center)
+
+            # combine main and sub systems
+            candidate = main_system + sub_system
+        return candidate
+
+    def calc_acceptability(self, before: Atoms, after: Atoms) -> float:
+        e_before = before.get_potential_energy()
+        e_after = after.get_potential_energy()
+        return min(1, np.exp(-self.beta * (e_after - e_before)))
