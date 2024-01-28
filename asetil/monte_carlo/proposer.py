@@ -53,8 +53,12 @@ class TranslateProposer(Proposer):
         """
         temperature: float
             Temperature of the system in Kelvin
-        max_movement: Iterable[float]
-            Maximum movement of the atoms in Angstroms
+        x_range: Iterable[float]
+            x-axis range of movement
+        y_range: Iterable[float]
+            y-axis range of movement
+        z_range: Iterable[float]
+            z-axis range of movement
         """
         super().__init__(temperature)
         self.x_range = x_range
