@@ -21,9 +21,9 @@ class Proposer(ABC):
 class TranslateProposer(Proposer):
     def __init__(
         self,
-        x_range: Iterable[float, float] = (-0.15, 0.15),
-        y_range: Iterable[float, float] = (-0.15, 0.15),
-        z_range: Iterable[float, float] = (-0.15, 0.15),
+        x_range: Iterable[float] = (-0.15, 0.15),
+        y_range: Iterable[float] = (-0.15, 0.15),
+        z_range: Iterable[float] = (-0.15, 0.15),
     ) -> None:
         """
         temperature: float
@@ -102,9 +102,9 @@ class TranslateProposer(Proposer):
 class RotateProposer(Proposer):
     def __init__(
         self,
-        phi_range: Iterable[float, float] = (-60, 60),
-        theta_range: Iterable[float, float] = (-60, 60),
-        psi_range: Iterable[float, float] = (-60, 60),
+        phi_range: Iterable[float] = (-60, 60),
+        theta_range: Iterable[float] = (-60, 60),
+        psi_range: Iterable[float] = (-60, 60),
         center="COM",
     ) -> None:
         """
