@@ -2,13 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Iterable
 
 import numpy as np
-from ase import units
 from ase.atoms import Atoms
 
 
 class Proposer(ABC):
-    def __init__(self, temperature, *args, **kwargs) -> None:
-        self.temperature = temperature
+    def __init__(self, *args, **kwargs) -> None:
         return
 
     @abstractmethod
@@ -19,33 +17,10 @@ class Proposer(ABC):
     def calc_acceptability(self, *args, **kwargs) -> float:
         raise NotImplementedError
 
-    @property
-    def temperature(self):
-        return self._temperature
-
-    @temperature.setter
-    def temperature(self, temperature):
-        if temperature <= 0:
-            raise ValueError("temperature must be positive")
-        self._temperature = temperature
-        self._beta = 1 / units.kB / temperature
-
-    @property
-    def beta(self):
-        return self._beta
-
-    @beta.setter
-    def beta(self, beta):
-        if beta <= 0:
-            raise ValueError("beta must be positive")
-        self._beta = beta
-        self._temperature = 1 / units.kB / beta
-
 
 class TranslateProposer(Proposer):
     def __init__(
         self,
-        temperature: float,
         x_range: Iterable[float, float] = (-0.15, 0.15),
         y_range: Iterable[float, float] = (-0.15, 0.15),
         z_range: Iterable[float, float] = (-0.15, 0.15),
@@ -60,7 +35,6 @@ class TranslateProposer(Proposer):
         z_range: Iterable[float]
             z-axis range of movement
         """
-        super().__init__(temperature)
         self.x_range = x_range
         self.y_range = y_range
         self.z_range = z_range
@@ -119,24 +93,21 @@ class TranslateProposer(Proposer):
         candidate = main_system + sub_system
         return candidate
 
-    def calc_acceptability(self, before: Atoms, after: Atoms) -> float:
+    def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
         e_before = before.get_potential_energy()
         e_after = after.get_potential_energy()
-        return min(1, np.exp(-self.beta * (e_after - e_before)))
+        return min(1, np.exp(-beta * (e_after - e_before)))
 
 
 class RotateProposer(Proposer):
     def __init__(
         self,
-        temperature: float,
         phi_range: Iterable[float, float] = (-0.15, 0.15),
         theta_range: Iterable[float, float] = (-0.15, 0.15),
         psi_range: Iterable[float, float] = (-0.15, 0.15),
         center="COM",
     ) -> None:
         """
-        temperature: float
-            Temperature of the system in Kelvin
         phi_range: Iterable[float]
             Range of the 1st rotation angle around the z-axis. [degree]
         theta_range: Iterable[float]
@@ -148,7 +119,6 @@ class RotateProposer(Proposer):
             If np.ndarray, it must be a 3D vector.
             See https://wiki.fysik.dtu.dk/ase/ase/atoms.html#ase.Atoms.euler_rotate
         """
-        super().__init__(temperature)
         self.phi_range = phi_range
         self.theta_range = theta_range
         self.psi_range = psi_range
@@ -205,7 +175,7 @@ class RotateProposer(Proposer):
             candidate = main_system + sub_system
         return candidate
 
-    def calc_acceptability(self, before: Atoms, after: Atoms) -> float:
+    def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
         e_before = before.get_potential_energy()
         e_after = after.get_potential_energy()
-        return min(1, np.exp(-self.beta * (e_after - e_before)))
+        return min(1, np.exp(-beta * (e_after - e_before)))

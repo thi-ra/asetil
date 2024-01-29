@@ -8,9 +8,32 @@ from asetil.monte_carlo.proposer import Proposer
 
 
 class BaseMonteCarlo(ABC):
-    def __init__(self, max_iter) -> None:
+    def __init__(self, max_iter: int, temperature: float) -> None:
         self.max_iter = max_iter
+        self.tempetaru = temperature
         pass
+
+    @property
+    def temperature(self):
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, temperature):
+        if temperature <= 0:
+            raise ValueError("temperature must be positive")
+        self._temperature = temperature
+        self._beta = 1 / units.kB / temperature
+
+    @property
+    def beta(self):
+        return self._beta
+
+    @beta.setter
+    def beta(self, beta):
+        if beta <= 0:
+            raise ValueError("beta must be positive")
+        self._beta = beta
+        self._temperature = 1 / units.kB / beta
 
     def is_acceptable(self, acceptability):
         return np.random.rand() < acceptability
@@ -26,8 +49,7 @@ class BaseMonteCarlo(ABC):
 
 class MonteCarlo(BaseMonteCarlo):
     def __init__(self, max_iter, temperature, proposers: Iterable[Proposer]) -> None:
-        super().__init__(max_iter)
-        self.temperature = temperature
+        super().__init__(max_iter, temperature=temperature)
         self.proposers = proposers
         return
 
