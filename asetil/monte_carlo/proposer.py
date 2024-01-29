@@ -179,3 +179,30 @@ class RotateProposer(Proposer):
         e_before = before.get_potential_energy()
         e_after = after.get_potential_energy()
         return min(1, np.exp(-beta * (e_after - e_before)))
+
+
+class AddProposer(Proposer):
+    def __init__(self, additive: Atoms) -> None:
+        self.additive = additive
+        return
+
+    def proposer(self, system: Atoms, tags: Iterable[int]) -> Atoms:
+        for tag in tags:
+            # set tags to additive
+            additive = self.additive.copy()
+            additive.set_tags([tag] * len(additive))
+
+            # move additive to random position
+            cell = system.get_cell()
+            random_positions = np.sum([cell[i] * np.random.rand() for i in range(3)])
+            translate_vector = random_positions - additive.get_center_of_mass()
+            additive.translate(translate_vector)
+
+            # rotate additive to random orientation
+            phi, theta, psi = np.random.rand(3) * 360
+            additive.euler_rotate(phi, theta, psi, center="COM")
+            system += additive
+        return system
+
+    def calc_acceptability(self, *args, **kwargs) -> float:
+        raise NotImplementedError
