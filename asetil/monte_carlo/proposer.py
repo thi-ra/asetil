@@ -102,9 +102,9 @@ class TranslateProposer(Proposer):
 class RotateProposer(Proposer):
     def __init__(
         self,
-        phi_range: Iterable[float, float] = (-0.15, 0.15),
-        theta_range: Iterable[float, float] = (-0.15, 0.15),
-        psi_range: Iterable[float, float] = (-0.15, 0.15),
+        phi_range: Iterable[float, float] = (-60, 60),
+        theta_range: Iterable[float, float] = (-60, 60),
+        psi_range: Iterable[float, float] = (-60, 60),
         center="COM",
     ) -> None:
         """
