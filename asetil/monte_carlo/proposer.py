@@ -4,9 +4,12 @@ from typing import Iterable
 import numpy as np
 from ase.atoms import Atoms
 
+from asetil.monte_carlo.selector import TagSelector
+
 
 class Proposer(ABC):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, tag_selector: TagSelector, *args, **kwargs) -> None:
+        self.tag_selector = tag_selector
         return
 
     @abstractmethod
@@ -17,10 +20,14 @@ class Proposer(ABC):
     def calc_acceptability(self, *args, **kwargs) -> float:
         raise NotImplementedError
 
+    def select_tags(self, system: Atoms):
+        return self.tag_selector.select(system)
+
 
 class TranslateProposer(Proposer):
     def __init__(
         self,
+        tag_selector: TagSelector,
         x_range: Iterable[float] = (-0.15, 0.15),
         y_range: Iterable[float] = (-0.15, 0.15),
         z_range: Iterable[float] = (-0.15, 0.15),
@@ -35,6 +42,7 @@ class TranslateProposer(Proposer):
         z_range: Iterable[float]
             z-axis range of movement
         """
+        super().__init__(tag_selector)
         self.x_range = x_range
         self.y_range = y_range
         self.z_range = z_range
@@ -91,6 +99,7 @@ class TranslateProposer(Proposer):
 
         # combine main and sub systems
         candidate = main_system + sub_system
+        candidate.calc = system.calc
         return candidate
 
     def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
@@ -102,6 +111,7 @@ class TranslateProposer(Proposer):
 class RotateProposer(Proposer):
     def __init__(
         self,
+        tag_selector: TagSelector,
         phi_range: Iterable[float] = (-60, 60),
         theta_range: Iterable[float] = (-60, 60),
         psi_range: Iterable[float] = (-60, 60),
@@ -119,6 +129,7 @@ class RotateProposer(Proposer):
             If np.ndarray, it must be a 3D vector.
             See https://wiki.fysik.dtu.dk/ase/ase/atoms.html#ase.Atoms.euler_rotate
         """
+        super().__init__(tag_selector)
         self.phi_range = phi_range
         self.theta_range = theta_range
         self.psi_range = psi_range
@@ -173,6 +184,7 @@ class RotateProposer(Proposer):
 
             # combine main and sub systems
             candidate = main_system + sub_system
+        candidate.calc = system.calc
         return candidate
 
     def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
@@ -182,11 +194,13 @@ class RotateProposer(Proposer):
 
 
 class AddProposer(Proposer):
-    def __init__(self, additive: Atoms) -> None:
+    def __init__(self, tag_selector: TagSelector, additive: Atoms) -> None:
+        self.tag_selector = tag_selector
         self.additive = additive
         return
 
     def proposer(self, system: Atoms, tags: Iterable[int]) -> Atoms:
+        candidate = system.copy()
         for tag in tags:
             # set tags to additive
             additive = self.additive.copy()
@@ -201,7 +215,8 @@ class AddProposer(Proposer):
             # rotate additive to random orientation
             phi, theta, psi = np.random.rand(3) * 360
             additive.euler_rotate(phi, theta, psi, center="COM")
-            system += additive
+            candidate += additive
+        candidate.calc = system.calc
         return system
 
     def calc_acceptability(self, *args, **kwargs) -> float:

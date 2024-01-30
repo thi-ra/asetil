@@ -10,7 +10,7 @@ from asetil.monte_carlo.proposer import Proposer
 class BaseMonteCarlo(ABC):
     def __init__(self, max_iter: int, temperature: float) -> None:
         self.max_iter = max_iter
-        self.tempetaru = temperature
+        self.temperature = temperature
         pass
 
     @property
@@ -55,8 +55,9 @@ class MonteCarlo(BaseMonteCarlo):
 
     def step(self, system: Atoms):
         proposer = np.random.choice(self.proposers)
-        candidate = proposer.propose()
-        acceptability = proposer.calc_acceptability(system, candidate)
+        tags = proposer.select_tags(system)
+        candidate = proposer.propose(system, tags=tags)
+        acceptability = proposer.calc_acceptability(system, candidate, beta=self.beta)
         if self.is_acceptable(acceptability):
             system = candidate
         return system
@@ -64,6 +65,7 @@ class MonteCarlo(BaseMonteCarlo):
     def run(self, system: Atoms, current_iter=0):
         for _ in range(current_iter, self.max_iter):
             system = self.step(system)
+        return system
 
     @property
     def temperature(self):
