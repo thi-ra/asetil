@@ -25,6 +25,8 @@ class Proposer(ABC):
 
 
 class TranslateProposer(Proposer):
+    name = "Translate"
+
     def __init__(
         self,
         tag_selector: TagSelector,
@@ -109,6 +111,8 @@ class TranslateProposer(Proposer):
 
 
 class RotateProposer(Proposer):
+    name = "Rotate"
+
     def __init__(
         self,
         tag_selector: TagSelector,
@@ -194,6 +198,8 @@ class RotateProposer(Proposer):
 
 
 class AddProposer(Proposer):
+    name = "Add"
+
     def __init__(self, tag_selector: TagSelector, additive: Atoms) -> None:
         self.tag_selector = tag_selector
         self.additive = additive
