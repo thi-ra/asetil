@@ -4,7 +4,9 @@ from typing import Iterable
 import numpy as np
 from ase import Atoms, units
 
+from asetil.monte_carlo.logger import Logger
 from asetil.monte_carlo.proposer import Proposer
+from asetil.monte_carlo.step_info import MCStepInfo
 
 
 class BaseMonteCarlo(ABC):
@@ -48,43 +50,48 @@ class BaseMonteCarlo(ABC):
 
 
 class MonteCarlo(BaseMonteCarlo):
-    def __init__(self, max_iter, temperature, proposers: Iterable[Proposer]) -> None:
+    def __init__(
+        self,
+        max_iter,
+        temperature,
+        proposers: Iterable[Proposer],
+        loggers=Iterable[Logger],
+    ) -> None:
         super().__init__(max_iter, temperature=temperature)
         self.proposers = proposers
-        return
+        self.loggers = loggers
+        self.info = MCStepInfo(
+            iterations=None,
+            temperature=self.temperature,
+            beta=self.beta,
+            proposer=None,
+            is_accepted=False,
+            acceptability=0,
+            system=None,
+            candidate=None,
+        )
 
-    def step(self, system: Atoms):
+    def step(self, system: Atoms, iterations=None):
         proposer = np.random.choice(self.proposers)
         tags = proposer.select_tags(system)
         candidate = proposer.propose(system, tags=tags)
         acceptability = proposer.calc_acceptability(system, candidate, beta=self.beta)
-        if self.is_acceptable(acceptability):
-            system = candidate
-        return system
+        is_accepted = self.is_acceptable(acceptability)
+
+        self.info = MCStepInfo(
+            iterations=iterations,
+            temperature=self.temperature,
+            beta=self.beta,
+            proposer=proposer,
+            is_accepted=is_accepted,
+            acceptability=acceptability,
+            system=system,
+            candidate=candidate,
+        )
+        self.logger.log(self.info)
+        return candidate if is_accepted else system
 
     def run(self, system: Atoms, current_iter=0):
-        for _ in range(current_iter, self.max_iter):
-            system = self.step(system)
+        for i in range(current_iter, self.max_iter):
+            system = self.step(system, iterations=i)
         return system
-
-    @property
-    def temperature(self):
-        return self._temperature
-
-    @temperature.setter
-    def temperature(self, temperature):
-        if temperature <= 0:
-            raise ValueError("temperature must be positive")
-        self._temperature = temperature
-        self._beta = 1 / units.kB / temperature
-
-    @property
-    def beta(self):
-        return self._beta
-
-    @beta.setter
-    def beta(self, beta):
-        if beta <= 0:
-            raise ValueError("beta must be positive")
-        self._beta = beta
-        self._temperature = 1 / units.kB / beta
