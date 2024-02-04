@@ -55,13 +55,13 @@ class MonteCarlo(BaseMonteCarlo):
         max_iter,
         temperature,
         proposers: Iterable[Proposer],
-        loggers=Iterable[Logger],
+        loggers: Iterable[Logger] = None,
     ) -> None:
         super().__init__(max_iter, temperature=temperature)
         self.proposers = proposers
         self.loggers = loggers
         self.info = MCStepInfo(
-            iterations=None,
+            iteration=None,
             temperature=self.temperature,
             beta=self.beta,
             proposer=None,
@@ -71,7 +71,7 @@ class MonteCarlo(BaseMonteCarlo):
             candidate=None,
         )
 
-    def step(self, system: Atoms, iterations=None):
+    def step(self, system: Atoms, iteration=None):
         proposer = np.random.choice(self.proposers)
         tags = proposer.select_tags(system)
         candidate = proposer.propose(system, tags=tags)
@@ -79,7 +79,7 @@ class MonteCarlo(BaseMonteCarlo):
         is_accepted = self.is_acceptable(acceptability)
 
         self.info = MCStepInfo(
-            iterations=iterations,
+            iteration=iteration,
             temperature=self.temperature,
             beta=self.beta,
             proposer=proposer,
@@ -88,10 +88,16 @@ class MonteCarlo(BaseMonteCarlo):
             system=system,
             candidate=candidate,
         )
-        self.logger.log(self.info)
+        if self.loggers is not None:
+            for logger in self.loggers:
+                logger.log(self.info)
         return candidate if is_accepted else system
 
     def run(self, system: Atoms, current_iter=0):
+        if self.loggers is not None and current_iter == 0:
+            print("initializing loggers")
+            for logger in self.loggers:
+                logger.initialize()
         for i in range(current_iter, self.max_iter):
-            system = self.step(system, iterations=i)
+            system = self.step(system, iteration=i)
         return system
