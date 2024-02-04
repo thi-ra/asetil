@@ -18,8 +18,8 @@ class MCPrintLogger(Logger):
 
     def initialize(self):
         text = (
-            f"{"iteration":>10}, {"proposer.name":>15}, {"delta_e":>10}, "
-            f"{"acceptability":15}:, {"is_accepted":>12}\n",
+            f"{"iteration":>10}, {"proposer.name":>15}, {"potential_energy":>18}, {"delta_e":>10}, "
+            f"{"acceptability":>15}, {"is_accepted":>12}\n"
         )
         print(text, end="")
 
@@ -31,8 +31,8 @@ class MCPrintLogger(Logger):
             info.candidate.get_potential_energy() - info.system.get_potential_energy()
         )
         text = (
-            f"{info.iteration:>10}, {info.proposer.name:>15}, {delta_energy:10.6f}, "
-            f"{info.acceptability:15.6f}:, {info.is_accepted:>12}\n"
+            f"{info.iteration:>10}, {info.proposer.name:>15}, {info.candidate.get_potential_energy():18.6f}, {delta_energy:10.6f}, "
+            f"{info.acceptability:15.6f}, {str(info.is_accepted):>12}\n"
         )
         print(text, end="")
 
