@@ -1,4 +1,5 @@
 from abc import ABC, abstractclassmethod
+from pathlib import Path
 
 from asetil.monte_carlo.step_info import MCStepInfo
 
@@ -37,9 +38,38 @@ class MCPrintLogger(Logger):
         print(text, end="")
 
 
-class FileLogger(Logger):
-    def __init__(self, log_interval) -> None:
+class MCPFileLogger(Logger):
+    def __init__(self, log_interval, out_file, force_overwrite=False) -> None:
         super().__init__(log_interval)
+        self.out_file = Path(out_file)
+        self.force_overwrite = force_overwrite
+        if not self.force_overwrite:
+            raise RuntimeError(f"File {self.out_file} already exists.")
+
+    def initialize(self):
+        if self.out_file.exists() and not self.force_overwrite:
+            raise RuntimeError(f"File {self.out_file} already exists.")
+
+        text = (
+            f"{"iteration":>10}, {"proposer.name":>15}, {"potential_energy":>18}, {"delta_e":>10}, "
+            f"{"acceptability":>15}, {"is_accepted":>12}\n"
+        )
+        with open(self.out_file, "w") as f:
+            f.write(text)
+
+    def log(self, info: MCStepInfo):
+        if info.iteration % self.log_interval != 0:
+            return
+
+        delta_energy = (
+            info.candidate.get_potential_energy() - info.system.get_potential_energy()
+        )
+        text = (
+            f"{info.iteration:>10}, {info.proposer.name:>15}, {info.candidate.get_potential_energy():18.6f}, {delta_energy:10.6f}, "
+            f"{info.acceptability:15.6f}, {str(info.is_accepted):>12}\n"
+        )
+        with open(self.out_file, "a") as f:
+            f.write(text)
 
 
 class AtomsLogger(Logger):
