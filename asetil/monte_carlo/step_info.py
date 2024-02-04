@@ -13,3 +13,4 @@ class MCStepInfo:
     acceptability: float
     system: Atoms
     candidate: Atoms
+    latest_accepted_energy: float
