@@ -54,17 +54,17 @@ class MonteCarlo(BaseMonteCarlo):
         self,
         max_iter,
         temperature,
-        proposers: Iterable[Sampler],
+        samplers: Iterable[Sampler],
         loggers: Iterable[Logger] = None,
     ) -> None:
         super().__init__(max_iter, temperature=temperature)
-        self.proposers = proposers
+        self.samplers = samplers
         self.loggers = loggers
         self.info = MCStepInfo(
             iteration=None,
             temperature=self.temperature,
             beta=self.beta,
-            proposer=None,
+            sampler=None,
             is_accepted=False,
             acceptability=0,
             system=None,
@@ -73,10 +73,10 @@ class MonteCarlo(BaseMonteCarlo):
         )
 
     def step(self, system: Atoms, iteration=None):
-        proposer = np.random.choice(self.proposers)
-        tags = proposer.select_tags(system)
-        candidate = proposer.propose(system, tags=tags)
-        acceptability = proposer.calc_acceptability(system, candidate, beta=self.beta)
+        sampler = np.random.choice(self.samplers)
+        tags = sampler.select_tags(system)
+        candidate = sampler.sample(system, tags=tags)
+        acceptability = sampler.calc_acceptability(system, candidate, beta=self.beta)
         is_accepted = self.is_acceptable(acceptability)
         if is_accepted:
             latest_accepted_energy = candidate.get_potential_energy()
@@ -87,7 +87,7 @@ class MonteCarlo(BaseMonteCarlo):
             iteration=iteration,
             temperature=self.temperature,
             beta=self.beta,
-            proposer=proposer,
+            sampler=sampler,
             is_accepted=is_accepted,
             acceptability=acceptability,
             system=system,

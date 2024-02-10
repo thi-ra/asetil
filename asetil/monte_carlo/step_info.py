@@ -8,7 +8,7 @@ class MCStepInfo:
     iteration: int
     temperature: float
     beta: float
-    proposer: object
+    sampler: object
     is_accepted: bool
     acceptability: float
     system: Atoms

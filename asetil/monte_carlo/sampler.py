@@ -292,7 +292,7 @@ class AddSampler(Sampler):
         self.additive = additive
         return
 
-    def proposer(self, system: Atoms, tags: Iterable[int]) -> Atoms:
+    def sample(self, system: Atoms, tags: Iterable[int]) -> Atoms:
         candidate = system.copy()
         for tag in tags:
             # set tags to additive
