@@ -19,7 +19,7 @@ class MCPrintLogger(Logger):
 
     def initialize(self):
         text = (
-            f"{"iteration":>10}, {"proposer.name":>15}, {"latest_accepted_energy":>22}, {"delta_e":>10}, "
+            f"{"iteration":>10}, {"sampler.name":>15}, {"latest_accepted_energy":>22}, {"delta_e":>10}, "
             f"{"acceptability":>15}, {"is_accepted":>12}\n"
         )
         print(text, end="")
@@ -32,7 +32,7 @@ class MCPrintLogger(Logger):
             info.candidate.get_potential_energy() - info.system.get_potential_energy()
         )
         text = (
-            f"{info.iteration:>10}, {info.proposer.name:>15}, {info.latest_accepted_energy:22.6f}, {delta_energy:10.6f}, "
+            f"{info.iteration:>10}, {info.sampler.name:>15}, {info.latest_accepted_energy:22.6f}, {delta_energy:10.6f}, "
             f"{info.acceptability:15.6f}, {str(info.is_accepted):>12}\n"
         )
         print(text, end="")
@@ -51,7 +51,7 @@ class MCPFileLogger(Logger):
             raise RuntimeError(f"File {self.out_file} already exists.")
 
         text = (
-            f"{"iteration":>10}, {"proposer.name":>15}, {"latest_accepted_energy":>22}, {"delta_e":>10}, "
+            f"{"iteration":>10}, {"sampler.name":>15}, {"latest_accepted_energy":>22}, {"delta_e":>10}, "
             f"{"acceptability":>15}, {"is_accepted":>12}\n"
         )
         with open(self.out_file, "w") as f:
@@ -65,7 +65,7 @@ class MCPFileLogger(Logger):
             info.candidate.get_potential_energy() - info.system.get_potential_energy()
         )
         text = (
-            f"{info.iteration:>10}, {info.proposer.name:>15}, {info.latest_accepted_energy:22.6f}, {delta_energy:10.6f}, "
+            f"{info.iteration:>10}, {info.sampler.name:>15}, {info.latest_accepted_energy:22.6f}, {delta_energy:10.6f}, "
             f"{info.acceptability:15.6f}, {str(info.is_accepted):>12}\n"
         )
         with open(self.out_file, "a") as f:
@@ -89,7 +89,7 @@ class MCInMemoryLogger(Logger):
         log = [
             [
                 i.iteration,
-                i.proposer.name,
+                i.sampler.name,
                 i.latest_accepted_energy,
                 i.candidate.get_potential_energy() - i.system.get_potential_energy(),
                 i.acceptability,
@@ -100,7 +100,7 @@ class MCInMemoryLogger(Logger):
         if with_columns:
             columns = (
                 "iteration",
-                "proposer.name",
+                "sampler.name",
                 "latest_accepted_energy",
                 "delta_e",
                 "acceptability",
