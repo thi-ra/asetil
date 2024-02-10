@@ -111,7 +111,7 @@ class TranslateSampler(Sampler):
 
 
 class EulerRotateSampler(Sampler):
-    name = "Rotate"
+    name = "EulerRotate"
 
     def __init__(
         self,
@@ -198,6 +198,8 @@ class EulerRotateSampler(Sampler):
 
 
 class XYZAxesRotateSampler(Sampler):
+    name = "XYZRotate"
+
     def __init__(
         self,
         tag_selector: TagSelector,
