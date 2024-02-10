@@ -110,7 +110,7 @@ class TranslateSampler(Sampler):
         return min(1, np.exp(-beta * (e_after - e_before)))
 
 
-class RotateSampler(Sampler):
+class EulerRotateSampler(Sampler):
     name = "Rotate"
 
     def __init__(
@@ -185,6 +185,93 @@ class RotateSampler(Sampler):
                 np.random.uniform(*self.psi_range),
             ]
             sub_system.euler_rotate(*rotate_angle, center=self.center)
+
+            # combine main and sub systems
+            candidate = main_system + sub_system
+        candidate.calc = system.calc
+        return candidate
+
+    def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
+        e_before = before.get_potential_energy()
+        e_after = after.get_potential_energy()
+        return min(1, np.exp(-beta * (e_after - e_before)))
+
+
+class XYZAxesRotateSampler(Sampler):
+    def __init__(
+        self,
+        tag_selector: TagSelector,
+        x_axis_range: Iterable[float] = (-60, 60),
+        y_axis_range: Iterable[float] = (-60, 60),
+        z_axis_range: Iterable[float] = (-60, 60),
+        center="COM",
+    ) -> None:
+        """
+        x_axis_range: Iterable[float]
+            Range of rotation angle around the x-axis. [degree]
+        y_axis_range: Iterable[float]
+            Range of rotation angle around the y-axis. [degree]
+        z_axis_range: Iterable[float]
+            Range of rotation angle around the z-axis. [degree]
+        center: str or np.ndarray
+            Center of rotation. If str, it must be one of "COM" or "COP" or "COU".
+            If np.ndarray, it must be a 3D vector.
+            See https://wiki.fysik.dtu.dk/ase/ase/atoms.html#ase.Atoms.rotate
+        """
+        super().__init__(tag_selector)
+        self.x_axis_range = x_axis_range
+        self.y_axis_range = y_axis_range
+        self.z_axis_range = z_axis_range
+        self.center = center
+
+    @property
+    def x_axis_range(self):
+        return self._x_axis_range
+
+    @x_axis_range.setter
+    def x_axis_range(self, x_axis_range):
+        if len(x_axis_range) != 2:
+            raise ValueError("x_axis_range must be an array of length 2")
+        self._x_axis_range = x_axis_range
+
+    @property
+    def y_axis_range(self):
+        return self._y_axis_range
+
+    @y_axis_range.setter
+    def y_axis_range(self, y_axis_range):
+        if len(y_axis_range) != 2:
+            raise ValueError("y_axis_range must be an array of length 2")
+        self._y_axis_range = y_axis_range
+
+    @property
+    def z_axis_range(self):
+        return self._z_axis_range
+
+    @z_axis_range.setter
+    def z_axis_range(self, z_axis_range):
+        if len(z_axis_range) != 2:
+            raise ValueError("z_axis_range must be an array of length 2")
+        self._z_axis_range = z_axis_range
+
+    def propose(self, system: Atoms, tags: Iterable[int]) -> None:
+        candidate = system.copy()
+        for tag in tags:
+            # split system into main and sub systems
+            mask = candidate.get_tags() == tag
+            main_system = candidate[~mask]
+            sub_system = candidate[mask]
+
+            # create a new sub system with rotation
+            sub_system.rotate(
+                np.random.uniform(*self.x_axis_range), "x", center=self.center
+            )
+            sub_system.rotate(
+                np.random.uniform(*self.y_axis_range), "y", center=self.center
+            )
+            sub_system.rotate(
+                np.random.uniform(*self.z_axis_range), "z", center=self.center
+            )
 
             # combine main and sub systems
             candidate = main_system + sub_system
