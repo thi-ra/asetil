@@ -7,7 +7,7 @@ from ase.atoms import Atoms
 from asetil.monte_carlo.selector import TagSelector
 
 
-class Proposer(ABC):
+class Sampler(ABC):
     def __init__(self, tag_selector: TagSelector, *args, **kwargs) -> None:
         self.tag_selector = tag_selector
         return
@@ -24,7 +24,7 @@ class Proposer(ABC):
         return self.tag_selector.select(system)
 
 
-class TranslateProposer(Proposer):
+class TranslateSampler(Sampler):
     name = "Translate"
 
     def __init__(
@@ -110,7 +110,7 @@ class TranslateProposer(Proposer):
         return min(1, np.exp(-beta * (e_after - e_before)))
 
 
-class RotateProposer(Proposer):
+class RotateSampler(Sampler):
     name = "Rotate"
 
     def __init__(
@@ -197,7 +197,7 @@ class RotateProposer(Proposer):
         return min(1, np.exp(-beta * (e_after - e_before)))
 
 
-class AddProposer(Proposer):
+class AddSampler(Sampler):
     name = "Add"
 
     def __init__(self, tag_selector: TagSelector, additive: Atoms) -> None:

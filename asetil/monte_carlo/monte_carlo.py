@@ -5,7 +5,7 @@ import numpy as np
 from ase import Atoms, units
 
 from asetil.monte_carlo.logger import Logger
-from asetil.monte_carlo.proposer import Proposer
+from asetil.monte_carlo.sampler import Sampler
 from asetil.monte_carlo.step_info import MCStepInfo
 
 
@@ -54,7 +54,7 @@ class MonteCarlo(BaseMonteCarlo):
         self,
         max_iter,
         temperature,
-        proposers: Iterable[Proposer],
+        proposers: Iterable[Sampler],
         loggers: Iterable[Logger] = None,
     ) -> None:
         super().__init__(max_iter, temperature=temperature)
