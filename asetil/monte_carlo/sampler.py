@@ -13,7 +13,7 @@ class Sampler(ABC):
         return
 
     @abstractmethod
-    def propose(self, *args, **kwargs) -> None:
+    def sample(self, *args, **kwargs) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -80,7 +80,7 @@ class TranslateSampler(Sampler):
             raise ValueError("z_range must be an array of length 2")
         self._z_range = z_range
 
-    def propose(self, system: Atoms, tags: Iterable[int]) -> None:
+    def sample(self, system: Atoms, tags: Iterable[int]) -> None:
         # split system into main and sub systems
         tags = set(tags)
         mask = np.array([i in tags for i in system.get_tags()])
@@ -170,7 +170,7 @@ class EulerRotateSampler(Sampler):
             raise ValueError("psi_range must be an array of length 2")
         self._psi_range = psi_range
 
-    def propose(self, system: Atoms, tags: Iterable[int]) -> None:
+    def sample(self, system: Atoms, tags: Iterable[int]) -> None:
         candidate = system.copy()
         for tag in tags:
             # split system into main and sub systems
@@ -254,7 +254,7 @@ class XYZAxesRotateSampler(Sampler):
             raise ValueError("z_axis_range must be an array of length 2")
         self._z_axis_range = z_axis_range
 
-    def propose(self, system: Atoms, tags: Iterable[int]) -> None:
+    def sample(self, system: Atoms, tags: Iterable[int]) -> None:
         candidate = system.copy()
         for tag in tags:
             # split system into main and sub systems
