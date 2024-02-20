@@ -404,9 +404,12 @@ class ChemicalSymbolExchangeSampler(Sampler):
         super().__init__(tag_selector, *args, **kwargs)
 
     def sample(self, system: Atoms, tags: Iterable[tuple[int]]) -> Atoms:
-        symbols = system.get_chemical_symbols()
+        candidate = system.copy()
+        symbols = candidate.get_chemical_symbols()
         for t in tags:
             symbols[t[0]], symbols[t[1]] = symbols[t[1]], symbols[t[0]]
+        candidate.set_chemical_symbols(symbols)
+        return candidate
 
     def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
         return after.get_potential_energy() - before.get_potential_energy()
