@@ -395,3 +395,29 @@ class RemoveSampler(Sampler):
         **kwargs,
     ) -> float:
         raise NotImplementedError
+
+
+class ChemicalSymbolExchangeSampler(Sampler):
+    name = "Exchange"
+
+    def __init__(self, tag_selector: TagSelector, *args, **kwargs) -> None:
+        super().__init__(tag_selector, *args, **kwargs)
+
+    def sample(self, system: Atoms, tags: Iterable[tuple[int]]) -> Atoms:
+        symbols = system.get_chemical_symbols()
+        for t in tags:
+            symbols[t[0]], symbols[t[1]] = symbols[t[1]], symbols[t[0]]
+
+    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
+        return after.get_potential_energy() - before.get_potential_energy()
+
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
+        return min(1, np.exp(-beta * delta_energy))
