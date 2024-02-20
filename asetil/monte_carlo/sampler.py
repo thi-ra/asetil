@@ -30,7 +30,7 @@ class Sampler(ABC):
         *args,
         **kwargs,
     ) -> float:
-    raise NotImplementedError
+        raise NotImplementedError
 
     def select_tags(self, system: Atoms):
         return self.tag_selector.select(system)
