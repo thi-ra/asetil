@@ -17,8 +17,20 @@ class Sampler(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def calc_acceptability(self, *args, **kwargs) -> float:
+    def calc_delta_energy(self, *args, **kwargs) -> float:
         raise NotImplementedError
+
+    @abstractmethod
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
+    raise NotImplementedError
 
     def select_tags(self, system: Atoms):
         return self.tag_selector.select(system)
@@ -104,10 +116,19 @@ class TranslateSampler(Sampler):
         candidate.calc = system.calc
         return candidate
 
-    def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
-        e_before = before.get_potential_energy()
-        e_after = after.get_potential_energy()
-        return min(1, np.exp(-beta * (e_after - e_before)))
+    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
+        return after.get_potential_energy() - before.get_potential_energy()
+
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
+        return min(1, np.exp(-beta * delta_energy))
 
 
 class EulerRotateSampler(Sampler):
@@ -191,10 +212,19 @@ class EulerRotateSampler(Sampler):
         candidate.calc = system.calc
         return candidate
 
-    def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
-        e_before = before.get_potential_energy()
-        e_after = after.get_potential_energy()
-        return min(1, np.exp(-beta * (e_after - e_before)))
+    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
+        return after.get_potential_energy() - before.get_potential_energy()
+
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
+        return min(1, np.exp(-beta * delta_energy))
 
 
 class XYZAxesRotateSampler(Sampler):
@@ -280,10 +310,19 @@ class XYZAxesRotateSampler(Sampler):
         candidate.calc = system.calc
         return candidate
 
-    def calc_acceptability(self, before: Atoms, after: Atoms, beta: float) -> float:
-        e_before = before.get_potential_energy()
-        e_after = after.get_potential_energy()
-        return min(1, np.exp(-beta * (e_after - e_before)))
+    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
+        return after.get_potential_energy() - before.get_potential_energy()
+
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
+        return min(1, np.exp(-beta * delta_energy))
 
 
 class AddSampler(Sampler):
@@ -314,5 +353,16 @@ class AddSampler(Sampler):
         candidate.calc = system.calc
         return system
 
-    def calc_acceptability(self, *args, **kwargs) -> float:
+    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
+        return after.get_potential_energy() - before.get_potential_energy()
+
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
         raise NotImplementedError

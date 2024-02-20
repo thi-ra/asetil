@@ -76,7 +76,10 @@ class MonteCarlo(BaseMonteCarlo):
         sampler = np.random.choice(self.samplers)
         tags = sampler.select_tags(system)
         candidate = sampler.sample(system, tags=tags)
-        acceptability = sampler.calc_acceptability(system, candidate, beta=self.beta)
+        delta_energy = sampler.calc_delta_energy(system, candidate)
+        acceptability = sampler.calc_acceptability(
+            system, candidate, beta=self.beta, delta_energy=delta_energy
+        )
         is_accepted = self.is_acceptable(acceptability)
         if is_accepted:
             latest_accepted_energy = candidate.get_potential_energy()
