@@ -366,3 +366,32 @@ class AddSampler(Sampler):
         **kwargs,
     ) -> float:
         raise NotImplementedError
+
+
+class RemoveSampler(Sampler):
+    name = "Remove"
+
+    def __init__(self, tag_selector: TagSelector, additive: Atoms) -> None:
+        self.tag_selector = tag_selector
+        self.additive = additive
+        return
+
+    def sample(self, system: Atoms, tags: Iterable[int]) -> Atoms:
+        mask = [i not in tags for i in system.get_tags()]
+        candidate = system[mask]
+        candidate.calc = system.calc
+        return system
+
+    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
+        return after.get_potential_energy() - before.get_potential_energy()
+
+    def calc_acceptability(
+        self,
+        before: Atoms,
+        after: Atoms,
+        beta: float,
+        delta_energy: float,
+        *args,
+        **kwargs,
+    ) -> float:
+        raise NotImplementedError
