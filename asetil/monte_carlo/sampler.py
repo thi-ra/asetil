@@ -4,7 +4,7 @@ from typing import Iterable
 import numpy as np
 from ase.atoms import Atoms
 
-from asetil.monte_carlo.selector import TagSelector
+from asetil.monte_carlo.tag_selector import TagSelector
 from asetil.util import calc_thermal_de_broglie
 
 

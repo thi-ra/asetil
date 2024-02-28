@@ -2,7 +2,7 @@ from abc import ABC, abstractclassmethod
 
 import numpy as np
 
-from asetil.monte_carlo import Sampler
+from asetil.monte_carlo.sampler import Sampler
 
 
 class SamplerSelector(ABC):
