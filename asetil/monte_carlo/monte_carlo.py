@@ -70,6 +70,7 @@ class MonteCarlo(BaseMonteCarlo):
             system=None,
             candidate=None,
             latest_accepted_energy=np.nan,
+            delta_energy=np.nan,
         )
 
     def step(self, system: Atoms, iteration=None):
@@ -82,7 +83,7 @@ class MonteCarlo(BaseMonteCarlo):
         )
         is_accepted = self.is_acceptable(acceptability)
         if is_accepted:
-            latest_accepted_energy = candidate.get_potential_energy()
+            latest_accepted_energy = sampler.calc_after_energy(candidate)
         else:
             latest_accepted_energy = self.info.latest_accepted_energy
 
@@ -96,6 +97,7 @@ class MonteCarlo(BaseMonteCarlo):
             system=system,
             candidate=candidate,
             latest_accepted_energy=latest_accepted_energy,
+            delta_energy=delta_energy,
         )
         if self.loggers is not None:
             for logger in self.loggers:
