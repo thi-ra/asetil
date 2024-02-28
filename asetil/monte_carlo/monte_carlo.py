@@ -83,7 +83,7 @@ class MonteCarlo(BaseMonteCarlo):
         )
         is_accepted = self.is_acceptable(acceptability)
         if is_accepted:
-            latest_accepted_energy = candidate.get_potential_energy()
+            latest_accepted_energy = sampler.calc_after_energy(candidate)
         else:
             latest_accepted_energy = self.info.latest_accepted_energy
 
