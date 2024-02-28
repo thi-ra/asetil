@@ -17,9 +17,16 @@ class Sampler(ABC):
     def sample(self, *args, **kwargs) -> None:
         raise NotImplementedError
 
-    @abstractmethod
-    def calc_delta_energy(self, *args, **kwargs) -> float:
-        raise NotImplementedError
+    def calc_delta_energy(self, before, after, *args, **kwargs) -> float:
+        e_before = self.calc_before_energy(before)
+        e_after = self.calc_after_energy(after)
+        return e_after - e_before
+
+    def calc_before_energy(self, atoms: Atoms, *args, **kwargs) -> float:
+        return atoms.get_potential_energy()
+
+    def calc_after_energy(self, atoms: Atoms, *args, **kwargs) -> float:
+        return atoms.get_potential_energy()
 
     @abstractmethod
     def calc_acceptability(
@@ -48,8 +55,8 @@ class TranslateSampler(Sampler):
         z_range: Iterable[float] = (-0.15, 0.15),
     ) -> None:
         """
-        temperature: float
-            Temperature of the system in Kelvin
+        tag_selector: TagSelector
+            TagSelector object
         x_range: Iterable[float]
             x-axis range of movement
         y_range: Iterable[float]
@@ -117,9 +124,6 @@ class TranslateSampler(Sampler):
         candidate.calc = system.calc
         return candidate
 
-    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
-        return after.get_potential_energy() - before.get_potential_energy()
-
     def calc_acceptability(
         self,
         before: Atoms,
@@ -144,6 +148,8 @@ class EulerRotateSampler(Sampler):
         center="COM",
     ) -> None:
         """
+        tag_selector: TagSelector
+            TagSelector object
         phi_range: Iterable[float]
             Range of the 1st rotation angle around the z-axis. [degree]
         theta_range: Iterable[float]
@@ -213,9 +219,6 @@ class EulerRotateSampler(Sampler):
         candidate.calc = system.calc
         return candidate
 
-    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
-        return after.get_potential_energy() - before.get_potential_energy()
-
     def calc_acceptability(
         self,
         before: Atoms,
@@ -240,6 +243,8 @@ class XYZAxesRotateSampler(Sampler):
         center="COM",
     ) -> None:
         """
+        tag_selector: TagSelector
+            TagSelector object
         x_axis_range: Iterable[float]
             Range of rotation angle around the x-axis. [degree]
         y_axis_range: Iterable[float]
@@ -311,9 +316,6 @@ class XYZAxesRotateSampler(Sampler):
         candidate.calc = system.calc
         return candidate
 
-    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
-        return after.get_potential_energy() - before.get_potential_energy()
-
     def calc_acceptability(
         self,
         before: Atoms,
@@ -354,9 +356,6 @@ class AddSampler(Sampler):
         candidate.calc = system.calc
         return system
 
-    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
-        return after.get_potential_energy() - before.get_potential_energy()
-
     def calc_acceptability(
         self,
         before: Atoms,
@@ -394,9 +393,6 @@ class RemoveSampler(Sampler):
         candidate.calc = system.calc
         return system
 
-    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
-        return after.get_potential_energy() - before.get_potential_energy()
-
     def calc_acceptability(
         self,
         before: Atoms,
@@ -420,32 +416,3 @@ class RemoveSampler(Sampler):
             np.exp(beta * delta_energy) / vol * ((num_molecule + 1) * dbl**3)
         )
         return min(1, acceptability)
-
-
-class ChemicalSymbolExchangeSampler(Sampler):
-    name = "Exchange"
-
-    def __init__(self, tag_selector: TagSelector, *args, **kwargs) -> None:
-        super().__init__(tag_selector, *args, **kwargs)
-
-    def sample(self, system: Atoms, tags: Iterable[tuple[int]]) -> Atoms:
-        candidate = system.copy()
-        symbols = candidate.get_chemical_symbols()
-        for t in tags:
-            symbols[t[0]], symbols[t[1]] = symbols[t[1]], symbols[t[0]]
-        candidate.set_chemical_symbols(symbols)
-        return candidate
-
-    def calc_delta_energy(self, before: Atoms, after: Atoms, *args, **kwargs) -> float:
-        return after.get_potential_energy() - before.get_potential_energy()
-
-    def calc_acceptability(
-        self,
-        before: Atoms,
-        after: Atoms,
-        beta: float,
-        delta_energy: float,
-        *args,
-        **kwargs,
-    ) -> float:
-        return min(1, np.exp(-beta * delta_energy))
