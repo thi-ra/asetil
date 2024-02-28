@@ -28,11 +28,8 @@ class MCPrintLogger(Logger):
         if info.iteration % self.log_interval != 0:
             return
 
-        delta_energy = (
-            info.candidate.get_potential_energy() - info.system.get_potential_energy()
-        )
         text = (
-            f"{info.iteration:>10}, {info.sampler.name:>15}, {info.latest_accepted_energy:22.6f}, {delta_energy:10.6f}, "
+            f"{info.iteration:>10}, {info.sampler.name:>15}, {info.latest_accepted_energy:22.6f}, {info.delta_energy:10.6f}, "
             f"{info.acceptability:15.6f}, {str(info.is_accepted):>12}\n"
         )
         print(text, end="")
@@ -61,11 +58,8 @@ class MCPFileLogger(Logger):
         if info.iteration % self.log_interval != 0:
             return
 
-        delta_energy = (
-            info.candidate.get_potential_energy() - info.system.get_potential_energy()
-        )
         text = (
-            f"{info.iteration:>10}, {info.sampler.name:>15}, {info.latest_accepted_energy:22.6f}, {delta_energy:10.6f}, "
+            f"{info.iteration:>10}, {info.sampler.name:>15}, {info.latest_accepted_energy:22.6f}, {info.delta_energy:10.6f}, "
             f"{info.acceptability:15.6f}, {str(info.is_accepted):>12}\n"
         )
         with open(self.out_file, "a") as f:
@@ -91,7 +85,7 @@ class MCInMemoryLogger(Logger):
                 i.iteration,
                 i.sampler.name,
                 i.latest_accepted_energy,
-                i.candidate.get_potential_energy() - i.system.get_potential_energy(),
+                i.delta_energy,
                 i.acceptability,
                 i.is_accepted,
             ]
