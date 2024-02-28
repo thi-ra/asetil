@@ -19,11 +19,15 @@ class RandomTagSelector(TagSelector):
     Select tags randomly from the system.
     """
 
-    def __init__(self, ignore_tags=None) -> None:
+    def __init__(self, target_tags=None, ignore_tags=None) -> None:
+        self.target_tags = target_tags
         self.ignore_tags = ignore_tags if ignore_tags is not None else []
 
     def select(self, system: Atoms, num_tags: int = 1) -> List[int]:
-        tags = system.get_tags()
+        if self.target_tags is not None:
+            tags = system.get_tags()
+        else:
+            tags = self.target_tags
         available_tags = [tag for tag in tags if tag not in self.ignore_tags]
         return np.random.choice(available_tags, size=num_tags, replace=False).tolist()
 
