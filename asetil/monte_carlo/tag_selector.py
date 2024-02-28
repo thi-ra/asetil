@@ -24,10 +24,7 @@ class RandomTagSelector(TagSelector):
         self.ignore_tags = ignore_tags if ignore_tags is not None else []
 
     def select(self, system: Atoms, num_tags: int = 1) -> List[int]:
-        if self.target_tags is not None:
-            tags = system.get_tags()
-        else:
-            tags = self.target_tags
+        tags = self.target_tags or system.get_tags()
         available_tags = [tag for tag in tags if tag not in self.ignore_tags]
         return np.random.choice(available_tags, size=num_tags, replace=False).tolist()
 
