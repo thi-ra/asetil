@@ -5,7 +5,7 @@ import numpy as np
 from ase import Atoms, units
 
 from asetil.monte_carlo.logger import Logger
-from asetil.monte_carlo.sampler import Sampler
+from asetil.monte_carlo.sampler_selector import SamplerSelector
 from asetil.monte_carlo.step_info import MCStepInfo
 
 
@@ -54,11 +54,11 @@ class MonteCarlo(BaseMonteCarlo):
         self,
         max_iter,
         temperature,
-        samplers: Iterable[Sampler],
+        sampler_selector: SamplerSelector,
         loggers: Iterable[Logger] = None,
     ) -> None:
         super().__init__(max_iter, temperature=temperature)
-        self.samplers = samplers
+        self.sampler_selector = sampler_selector
         self.loggers = loggers
         self.info = MCStepInfo(
             iteration=None,
@@ -73,7 +73,7 @@ class MonteCarlo(BaseMonteCarlo):
         )
 
     def step(self, system: Atoms, iteration=None):
-        sampler = np.random.choice(self.samplers)
+        sampler = self.sampler_selector.select()
         tags = sampler.select_tags(system)
         candidate = sampler.sample(system, tags=tags)
         delta_energy = sampler.calc_delta_energy(system, candidate)
