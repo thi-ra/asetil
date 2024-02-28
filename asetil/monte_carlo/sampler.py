@@ -5,6 +5,7 @@ import numpy as np
 from ase.atoms import Atoms
 
 from asetil.monte_carlo.selector import TagSelector
+from asetil.util import calc_thermal_de_broglie
 
 
 class Sampler(ABC):
@@ -365,7 +366,18 @@ class AddSampler(Sampler):
         *args,
         **kwargs,
     ) -> float:
-        raise NotImplementedError
+        # thermal de Broglie wavelength
+        mass = sum(self.additive.get_masses())
+        dbl = calc_thermal_de_broglie(molecular_weight=mass, beta=beta)
+
+        # number of melecules in system
+        num_molecule = len(set([i for i in after.get_tags() if i != 0]))
+        # volume of system
+        vol = after.get_volume()
+
+        # acceptability
+        acceptability = np.exp(beta * delta_energy) * vol / (num_molecule * dbl**3)
+        return min(1, acceptability)
 
 
 class RemoveSampler(Sampler):
@@ -394,7 +406,20 @@ class RemoveSampler(Sampler):
         *args,
         **kwargs,
     ) -> float:
-        raise NotImplementedError
+        # thermal de Broglie wavelength
+        mass = sum(self.additive.get_masses())
+        dbl = calc_thermal_de_broglie(molecular_weight=mass, beta=beta)
+
+        # number of melecules in system
+        num_molecule = len(set([i for i in after.get_tags() if i != 0]))
+        # volume of system
+        vol = after.get_volume()
+
+        # acceptability
+        acceptability = (
+            np.exp(beta * delta_energy) / vol * ((num_molecule + 1) * dbl**3)
+        )
+        return min(1, acceptability)
 
 
 class ChemicalSymbolExchangeSampler(Sampler):
