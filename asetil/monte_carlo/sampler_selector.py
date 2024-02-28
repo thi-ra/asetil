@@ -12,7 +12,9 @@ class SamplerSelector(ABC):
 
 
 class RandomSamplerSelector(SamplerSelector):
-    def __init__(self, samplers: list[Sampler] = (), weights: list[float] = ()):
+    def __init__(self, samplers: list[Sampler] = None, weights: list[float] = None):
+        samplers = samplers or []
+        weights = weights or []
         if len(samplers) != len(weights):
             raise RuntimeError("The length of sampler and weight should be the same")
 
