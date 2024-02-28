@@ -20,10 +20,12 @@ class RandomSamplerSelector(SamplerSelector):
 
         self._samplers = samplers
         self._weights = weights
+        self._p = np.array(weights) / sum(weights)
 
     def add_sampler(self, sampler, weight):
         self._samplers.append(sampler)
         self._weights.append(weight)
+        self._p = np.array(self._weights) / sum(self._weights)
 
     def select(self, *args, **kwargs):
-        return np.random.choice(self._samplers, p=self._weights)
+        return np.random.choice(self._samplers, p=self._p)
