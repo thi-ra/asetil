@@ -71,6 +71,7 @@ class MonteCarlo(BaseMonteCarlo):
             candidate=None,
             latest_accepted_energy=np.nan,
             delta_energy=np.nan,
+            tags=None,
         )
 
     def step(self, system: Atoms, iteration=None):
@@ -98,6 +99,7 @@ class MonteCarlo(BaseMonteCarlo):
             candidate=candidate,
             latest_accepted_energy=latest_accepted_energy,
             delta_energy=delta_energy,
+            tags=tags,
         )
         if self.loggers is not None:
             for logger in self.loggers:
