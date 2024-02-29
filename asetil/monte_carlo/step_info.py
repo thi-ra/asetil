@@ -15,3 +15,4 @@ class MCStepInfo:
     candidate: Atoms
     latest_accepted_energy: float
     delta_energy: float
+    tags: list
